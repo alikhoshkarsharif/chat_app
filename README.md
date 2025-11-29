@@ -5,6 +5,6 @@
 - php artisan serve (if you dont have reserved local host)
 - npm install
 - npm run dev
-- php artisan install:broadcasting
+- php artisan install:broadcasting ( select reverb if asked you in command )
 - php artisan reverb:start
 
