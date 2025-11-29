@@ -43,6 +43,8 @@ class MessageSent implements ShouldBroadcastNow
             'sender_id' => $this->message->sender_id,
             'receiver_id' => $this->message->receiver_id,
             'message' => $this->message->message,
+            'file' => $this->message->file_path,
+            'file_type' => $this->message->file_type,
         ];
     }
 }

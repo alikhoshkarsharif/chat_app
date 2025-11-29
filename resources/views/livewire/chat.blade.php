@@ -8,111 +8,162 @@
     <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
         <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg">
             <div class="p-6 text-gray-900">
-                <div style="display:flex; height:400px; border:1px solid #ccc;">
 
-                    <!-- CONTACTS LIST -->
-                    <div style="width:200px; border-right:1px solid #ccc; overflow-y:auto;">
-                        <h4 style="margin:5px;">Contacts</h4>
+                <div class="flex h-[400px] border border-gray-300">
+
+                    <!-- CONTACT LIST -->
+                    <div class="w-[200px] border-r border-gray-300 overflow-y-auto">
+                        <h4 class="m-1.5 font-semibold">Contacts</h4>
 
                         @foreach($contacts as $contact)
-                            <div style="padding:8px; cursor:pointer; border-bottom:1px solid #eee;"
-                                 wire:click="selectContact({{ $contact['id'] }})">
+                            <div
+                                wire:click="selectContact({{ $contact['id'] }})"
+                                class="p-2 cursor-pointer border-b border-gray-200 hover:bg-gray-100"
+                            >
                                 {{ $contact['name'] }}
                             </div>
                         @endforeach
                     </div>
 
                     <!-- CHAT BOX -->
-                    <div style="flex:1; display:flex; flex-direction:column;">
+                    <div class="flex flex-col flex-1">
 
                         <!-- Messages -->
-                        <div id="messages-box" style="flex:1; padding:10px; overflow-y:auto;">
+                        <div id="messages-box" class="flex-1 p-3 overflow-y-auto">
                             @if($selectedContact)
-                                @foreach($messages as $message)
 
-                                    @php
-                                        $isMe = $message->sender_id === auth()->id();
-                                    @endphp
+                                @foreach($this->messagesGroupedByDate as $date => $dayMessages)
 
-                                    <div style="margin-bottom:12px; display:flex; {{ $isMe ? 'justify-content:flex-end;' : 'justify-content:flex-start;' }}">
+                                    <!-- Sticky Date Header -->
+                                    <div class="sticky top-0 z-10 mb-2">
+                                        <div
+                                            class="mx-auto w-max bg-gray-300 text-gray-800 text-xs px-3 py-1 rounded-full shadow">
+                                            {{ \Carbon\Carbon::parse($date)->format('F j, Y') }}
+                                        </div>
+                                    </div>
 
-                                        <div style="
-                    max-width:70%;
-                    padding:10px 14px;
-                    border-radius:12px;
+                                    @foreach($dayMessages as $message)
+                                        @php
+                                            $isMe = $message->sender_id === auth()->id();
+                                        @endphp
+
+                                        <div class="mb-3 flex {{ $isMe ? 'justify-end' : 'justify-start' }}">
+                                            <div class="max-w-[70%] px-4 py-2 rounded-xl
                     {{ $isMe
-                        ? 'background:#4f46e5; color:white; border-bottom-right-radius:0;'
-                        : 'background:#e5e7eb; color:#111; border-bottom-left-radius:0;'
-                    }}
-                ">
-                                            <div style="font-size:12px; opacity:0.8; margin-bottom:3px;">
-                                                {{ $isMe ? 'You' : $message->sender->name }}
-                                            </div>
+                        ? 'bg-indigo-600 text-white rounded-br-none'
+                        : 'bg-gray-200 text-gray-900 rounded-bl-none'
+                    }}">
 
-                                            <div>
-                                                {{ $message->message }}
-                                            </div>
-                                            <!-- Timestamp -->
-                                            <div style="font-size:11px; opacity:0.6; margin-top:6px; text-align:right;">
-                                                {{ $message->created_at->format('H:i') }}
+                                                <div class="text-xs opacity-80 mb-1">
+                                                    {{ $isMe ? 'You' : $message->sender->name }}
+                                                </div>
+
+                                                <!-- File + Message Content -->
+                                                <div class="space-y-1">
+
+                                                    @if ($message->file_path)
+                                                        <a href="{{ asset('storage/' . $message->file_path) }}"
+                                                           target="_blank"
+                                                           class="font-semibold underline inline-block mb-1
+              {{ $isMe ? 'text-indigo-200' : 'text-blue-600' }}"
+                                                        >
+                                                            @if(str_contains($message->file_type, 'image'))
+                                                                <img src="{{ asset('storage/' . $message->file_path) }}"
+                                                                     class="max-w-[150px] rounded-lg">
+                                                            @else
+                                                                📎 Download File
+                                                                ({{ strtoupper(explode('/', $message->file_type)[1] ?? '') }}
+                                                                )
+                                                            @endif
+                                                        </a>
+                                                    @endif
+
+
+                                                    @if ($message->message)
+                                                        <div>{{ $message->message }}</div>
+                                                    @endif
+
+                                                </div>
+
+                                                <!-- Time -->
+                                                <div class="text-[11px] opacity-60 mt-1 text-right">
+                                                    {{ $message->created_at->format('H:i') }}
+                                                </div>
                                             </div>
                                         </div>
 
-                                    </div>
+                                    @endforeach
 
                                 @endforeach
+
                             @else
                                 <p>Select a contact to start chatting.</p>
                             @endif
                         </div>
 
-                        <div id="typing-indicator" style="font-size:12px; color:#666; padding:4px 10px;">
-                        </div>
+                        <!-- Typing Indicator -->
+                        <div id="typing-indicator" class="text-xs text-gray-600 px-2 py-1"></div>
+
                         <!-- Message Input -->
                         @if($selectedContact)
-                            <div style="padding:10px; border-top:1px solid #ccc;">
-                                <input type="text" wire:model.live="newMessage"
+                            <div class="p-3 border-t border-gray-300">
+                                <input type="file" wire:model="file" class="mb-2 text-sm">
+
+                                <input type="text"
+                                       wire:model.live="newMessage"
                                        wire:keydown.enter="sendMessage"
-                                       style="width:80%;" placeholder="Type a message...">
-                                <button wire:click="sendMessage">Send</button>
+                                       class="w-4/5 border border-gray-300 rounded px-3 py-2"
+                                       placeholder="Type a message..."
+                                >
+
+                                <button wire:click="sendMessage"
+                                        class="ml-2 bg-indigo-600 text-white px-4 py-2 rounded hover:bg-indigo-700">
+                                    Send
+                                </button>
+
+                                @error('file')
+                                <div class="text-red-600 text-sm mt-1">{{ $message }}</div>
+                                @enderror
                             </div>
                         @endif
+
                     </div>
                 </div>
+
             </div>
         </div>
     </div>
 </div>
 
 <script>
-    let typingIndicatorTimeout,scrollToBottomTimeout;
+    let typingIndicatorTimeout, scrollToBottomTimeout;
+
     function scrollToBottom() {
         const box = document.getElementById("messages-box");
         if (!box) return;
         box.scrollTop = box.scrollHeight;
     }
-    document.addEventListener('livewire:initialized',function() {
-        Livewire.on('userTyping',(event) => window.Echo.private(`chat.${event.selectedContactId}`).whisper('typing',{
-            userId: event.userId,
-            userName: event.userName
-        }))
 
-        window.Echo.private(`chat.{{$auth->id}}`).listenForWhisper('typing',(event) => {
-            const typingIndicator = document.getElementById('typing-indicator')
-            typingIndicator.innerHTML = `${event.userName} is typing ...`
+    document.addEventListener('livewire:initialized', function () {
 
-            if(typingIndicatorTimeout) {
-                clearTimeout(typingIndicatorTimeout);
-            }
-            typingIndicatorTimeout = setTimeout(() => {
-                typingIndicator.innerHTML = ''
-            },1500)
-        })
+        Livewire.on('userTyping', (event) =>
+            window.Echo.private(`chat.${event.selectedContactId}`)
+                .whisper('typing', {
+                    userId: event.userId,
+                    userName: event.userName
+                })
+        );
+
+        window.Echo.private(`chat.{{$auth->id}}`).listenForWhisper('typing', (event) => {
+            const typingIndicator = document.getElementById('typing-indicator');
+            typingIndicator.innerHTML = `${event.userName} is typing ...`;
+
+            clearTimeout(typingIndicatorTimeout);
+            typingIndicatorTimeout = setTimeout(() => typingIndicator.innerHTML = '', 1500);
+        });
 
         Livewire.on('scrollDown', () => {
-            if(scrollToBottomTimeout) {
-                clearTimeout(scrollToBottomTimeout);
-            }
+            clearTimeout(scrollToBottomTimeout);
             scrollToBottomTimeout = setTimeout(scrollToBottom, 50);
         });
     });
