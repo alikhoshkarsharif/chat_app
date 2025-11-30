@@ -67,7 +67,13 @@
                                                            class="font-semibold underline inline-block mb-1
               {{ $isMe ? 'text-indigo-200' : 'text-blue-600' }}"
                                                         >
-                                                            @if(str_contains($message->file_type, 'image'))
+                                                            @if (str_contains($message->file_type, 'audio'))
+                                                                <audio controls class="w-48 my-1 rounded">
+                                                                    <source
+                                                                        src="{{ asset('storage/' . $message->file_path) }}"
+                                                                        type="{{ $message->file_type }}">
+                                                                </audio>
+                                                            @elseif(str_contains($message->file_type, 'image'))
                                                                 <img src="{{ asset('storage/' . $message->file_path) }}"
                                                                      class="max-w-[150px] rounded-lg">
                                                             @else
@@ -107,6 +113,27 @@
                         <!-- Message Input -->
                         @if($selectedContact)
                             <div class="p-3 border-t border-gray-300">
+                                <!-- Voice Message Recording -->
+                                <div class="flex items-center space-x-2 mb-2">
+                                    <button
+                                        id="start-record-btn"
+                                        class="bg-green-600 text-white px-3 py-1 rounded hover:bg-green-700 text-sm"
+                                        type="button"
+                                    >
+                                        🎤 Start Recording
+                                    </button>
+
+                                    <button
+                                        id="stop-record-btn"
+                                        class="bg-red-600 text-white px-3 py-1 rounded hover:bg-red-700 text-sm hidden"
+                                        type="button"
+                                    >
+                                        ⏹ Stop
+                                    </button>
+
+                                    <audio id="audio-preview" controls class="hidden w-48"></audio>
+                                </div>
+
                                 <input type="file" wire:model="file" class="mb-2 text-sm">
 
                                 <input type="text"
@@ -168,3 +195,50 @@
         });
     });
 </script>
+<script>
+    document.addEventListener("livewire:initialized", () => {
+
+        const initRecorder = () => {
+            const startBtn = document.getElementById("start-record-btn");
+            const stopBtn = document.getElementById("stop-record-btn");
+            if (!startBtn || !stopBtn) return;
+
+            let mediaRecorder;
+            let audioChunks = [];
+
+            startBtn.onclick = async () => {
+                // Toggle buttons
+                startBtn.classList.add("hidden");
+                stopBtn.classList.remove("hidden");
+
+                const stream = await navigator.mediaDevices.getUserMedia({audio: true});
+                mediaRecorder = new MediaRecorder(stream, {
+                    mimeType: "audio/webm"
+                });
+                mediaRecorder.start();
+                audioChunks = [];
+
+                mediaRecorder.ondataavailable = (e) => audioChunks.push(e.data);
+                mediaRecorder.onstop = () => {
+                    const audioBlob = new Blob(audioChunks, {type: "audio/webm"});
+                    const file = new File([audioBlob], "voice-message.webm", {type: "audio/webm"});
+
+                    @this.
+                    upload("file", file);
+                    // Reset buttons
+                    stopBtn.classList.add("hidden");
+                    startBtn.classList.remove("hidden");
+                };
+            };
+
+            stopBtn.onclick = () => mediaRecorder.stop();
+        };
+
+        // When Livewire finishes DOM updates
+        Livewire.hook('message.processed', () => initRecorder());
+
+        // When user selects a contact
+        Livewire.on('contactSelected', () => initRecorder());
+    });
+</script>
+

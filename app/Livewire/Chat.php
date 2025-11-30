@@ -44,6 +44,7 @@ class Chat extends Component
                 ->where('receiver_id', $this->selectedContact->id);
         })->get();
         $this->dispatch('scrollDown');
+        $this->dispatch('contactSelected');
     }
 
     public function sendMessage(): void
@@ -85,6 +86,9 @@ class Chat extends Component
 
     public function receiveMessage(array $payload): void
     {
+        if (!$this->selectedContact) {
+            return;
+        }
         if ($payload['sender_id'] === $this->selectedContact->id) {
             $chatMessage = ChatMessage::query()->find($payload['id']);
             $this->messages->push($chatMessage);
