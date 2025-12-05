@@ -131,7 +131,7 @@
 
         let activeChannel = null;
 
-        Livewire.on('channelSelected', channelId => {
+        Livewire.on('channelSelected', ([channelId]) => {
 
             activeChannel = channelId;
 
