@@ -12,6 +12,10 @@ Route::view('profile', 'profile')
     ->middleware(['auth'])
     ->name('profile');
 
-Route::get('chat',\App\Livewire\Chat::class)->name('chat')->middleware(['auth', 'verified']);
+Route::get('chat', \App\Livewire\Chat::class)->name('chat')->middleware(['auth', 'verified']);
+Route::get('channels', \App\Livewire\ChannelFeed::class)
+    ->middleware(['auth'])
+    ->name('channels');
 
-require __DIR__.'/auth.php';
+
+require __DIR__ . '/auth.php';
