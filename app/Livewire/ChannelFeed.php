@@ -29,7 +29,7 @@ class ChannelFeed extends Component
     public function selectChannel($id): void
     {
         $this->selectedChannel = Channel::query()->findOrFail($id);
-        $this->channelPosts = $this->selectedChannel->posts()->latest()->get();
+        $this->channelPosts = $this->selectedChannel->posts()->get();
 
         foreach ($this->channelPosts as $post) {
             $post->increment('views');
@@ -43,7 +43,7 @@ class ChannelFeed extends Component
 
     public function createChannel(): void
     {
-        $channel = Channel::create([
+        Channel::query()->create([
             'name' => $this->newChannelName,
             'creator_id' => auth()->id()
         ]);
