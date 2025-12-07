@@ -1,5 +1,6 @@
 <?php
 
+use App\Enums\ChannelUserRole;
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
@@ -10,12 +11,14 @@ return new class extends Migration {
      */
     public function up(): void
     {
-        Schema::create('channel_posts', function (Blueprint $table) {
+        Schema::create('channel_user', function (Blueprint $table) {
             $table->id();
-            $table->foreignIdFor(\App\Models\Channel::class)->constrained()->cascadeOnDelete();
             $table->foreignIdFor(\App\Models\User::class)->constrained()->cascadeOnDelete();
-            $table->text('content');
+            $table->foreignIdFor(\App\Models\Channel::class)->constrained()->cascadeOnDelete();
+            $table->unsignedTinyInteger('role')->default(ChannelUserRole::MEMBER->value);
             $table->timestamps();
+
+            $table->unique(['channel_id', 'user_id']);
         });
     }
 
@@ -24,6 +27,6 @@ return new class extends Migration {
      */
     public function down(): void
     {
-        Schema::dropIfExists('channel_posts');
+        Schema::dropIfExists('channel_user');
     }
 };

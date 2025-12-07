@@ -53,7 +53,7 @@
 
                                             <div class="text-[11px] opacity-60 mt-1 flex justify-between">
                                                 <span>{{ $post->created_at->format('H:i') }}</span>
-                                                <span>👁 {{ $post->views }}</span>
+                                                <span>👁 {{ $post->views_count }}</span>
                                             </div>
                                         </div>
                                     </div>

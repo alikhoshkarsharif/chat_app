@@ -2,6 +2,7 @@
 
 namespace App\Livewire;
 
+use App\Enums\ChannelUserRole;
 use App\Events\ChannelViewed;
 use App\Models\Channel;
 use App\Models\ChannelPost;
@@ -23,16 +24,16 @@ class ChannelFeed extends Component
 
     public function mount(): void
     {
-        $this->channels = Channel::all();
+        $this->channels = Auth::user()->channels;
     }
 
     public function selectChannel($id): void
     {
         $this->selectedChannel = Channel::query()->findOrFail($id);
-        $this->channelPosts = $this->selectedChannel->posts()->get();
+        $this->channelPosts = $this->selectedChannel->posts()->withCount('views')->get();
 
         foreach ($this->channelPosts as $post) {
-            $post->increment('views');
+            $post->views()->syncWithoutDetaching(Auth::id());
         }
 
         broadcast(new ChannelViewed($id))->toOthers();
@@ -43,12 +44,16 @@ class ChannelFeed extends Component
 
     public function createChannel(): void
     {
-        Channel::query()->create([
+        $channel = Channel::query()->create([
             'name' => $this->newChannelName,
             'creator_id' => auth()->id()
         ]);
 
-        $this->channels = \App\Models\Channel::all(); // refresh for all
+        Auth::user()->channels()->attach($channel->id, [
+            'role' => ChannelUserRole::OWNER,
+        ]);
+
+        $this->channels = Auth::user()->channels; // refresh for all
         $this->newChannelName = "";
         $this->showCreateChannelModal = false;
     }
@@ -73,7 +78,7 @@ class ChannelFeed extends Component
     public function updateViewCount(): void
     {
         if ($this->selectedChannel) {
-            $this->channelPosts = $this->selectedChannel->posts()->latest()->get();
+            $this->channelPosts = $this->selectedChannel->posts()->withCount('views')->get();
         }
     }
 
