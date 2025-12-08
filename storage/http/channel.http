@@ -1,0 +1,35 @@
+### Create Channel
+POST http://localhost/api/channels
+Authorization: Bearer {{token}}
+Content-Type: application/json
+Accept: application/json
+
+{
+    "name": "Test Channel"
+}
+
+
+### Show Channel + View Tracking
+# Replace 1 with an existing channel ID
+GET http://localhost/api/channels/1
+Authorization: Bearer {{token}}
+Accept: application/json
+
+
+### Create a Post in a Channel
+# Replace 1 with an existing channel ID
+POST http://localhost/api/channels/1/posts
+Authorization: Bearer {{token}}
+Content-Type: application/json
+Accept: application/json
+
+{
+    "content": "This is a new message in channel 1!"
+}
+
+
+### Refresh Views Count
+# Replace 1 with an existing channel ID
+GET http://localhost/api/channels/1/refresh-views
+Authorization: Bearer {{token}}
+Accept: application/json

@@ -24,6 +24,7 @@
                             </div>
                         @endforeach
 
+
                         <button wire:click="$set('showCreateChannelModal', true)"
                                 class="mt-2 bg-indigo-600 text-white px-2 py-1 rounded text-xs block w-full">
                             + Create Channel
@@ -40,6 +41,20 @@
                                 <h3 class="font-semibold text-lg text-gray-800">
                                     # {{ $selectedChannel->name }}
                                 </h3>
+                                @if($selectedChannel && auth()->id() === $selectedChannel->creator_id)
+                                    <button wire:click="$set('showAddMemberModal', true)"
+                                            class="text-sm bg-green-600 text-white py-1 px-3 rounded ml-2">
+                                        + Add Member
+                                    </button>
+                                @endif
+                                <div class="text-xs opacity-70 mb-2">
+                                    Members:
+                                    @foreach($channelMembers as $member)
+                                        <span class="bg-gray-300 text-gray-700 px-1.5 py-0.5 rounded mr-1">
+            {{ $member->name }}
+        </span>
+                                    @endforeach
+                                </div>
 
                                 @foreach($channelPosts as $post)
                                     <div class="flex">
@@ -107,6 +122,33 @@
                     <button wire:click="createChannel"
                             class="px-3 py-1 bg-indigo-600 text-white rounded hover:bg-indigo-700">
                         Create
+                    </button>
+                </div>
+            </div>
+        </div>
+    @endif
+    @if($showAddMemberModal)
+        <div class="fixed inset-0 bg-black bg-opacity-40 flex justify-center items-center z-50">
+            <div class="bg-white p-5 rounded-lg w-80 shadow-lg">
+                <h3 class="text-lg font-semibold mb-3">Add Member</h3>
+
+                <input type="email"
+                       wire:model="emailToAdd"
+                       class="w-full border rounded px-3 py-2 mb-2"
+                       placeholder="Enter user email">
+                @error('emailToAdd')
+                <div class="text-red-600 text-xs mb-2">{{ $message }}</div>
+                @enderror
+
+                <div class="flex justify-end space-x-2">
+                    <button wire:click="$set('showAddMemberModal', false)"
+                            class="px-3 py-1 bg-gray-300 rounded hover:bg-gray-400">
+                        Cancel
+                    </button>
+
+                    <button wire:click="addMember"
+                            class="px-3 py-1 bg-green-600 text-white rounded hover:bg-green-700">
+                        Add
                     </button>
                 </div>
             </div>
